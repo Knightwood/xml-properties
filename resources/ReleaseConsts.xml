@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<file name="AppConfig" package="com.android.config">
+    <match build-type="release" flavor="bing,baidu" />
+    <object-class name="AppConfig">
+        <val name="user">"root"</val>
+        <val name="pwd">"Y6NiQpwN"</val>
+        <val name="host">"http://192.168.0.66:2333"</val>
+        <val name="isDebug" type="Boolean">false</val>
+
+        <!--对于有泛型的类型-->
+        <val name="list" type="List">
+            <generics>
+                <type name="String" />
+            </generics>
+            <code>mutableListOf()</code>
+        </val>
+        <!--val map:Map<String,List<Student>> = mutableMapOf()-->
+        <val name="map" type="Map">
+            <generics>
+                <type name="String" />
+                <type name="List" package="kotlin.collections">
+                    <type name="Student" package="com.vines.test.app" />
+                </type>
+            </generics>
+            <code>mutableMapOf()</code>
+        </val>
+
+    </object-class>
+</file>

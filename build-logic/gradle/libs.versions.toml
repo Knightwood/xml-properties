@@ -1,0 +1,77 @@
+[versions]
+kotlin_version = "2.0.21"
+gradle_plugin_version = "8.7.2"
+androidTools = "31.4.0"
+androidx_core = "1.12.0"
+appcompat = "1.6.1"
+fragment-ktx = "1.6.1"
+activity-ktx = "1.9.0"
+google_material = "1.12.0"
+androidx_constraintLayout = "2.1.4"
+lifecycle_version = "2.7.0"
+junit = "4.13.2"
+androidx-test-ext-junit = "1.1.5"
+espresso-core = "3.5.1"
+kotlin_coroutines = "1.9.0"
+
+[libraries]
+kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin_version" }
+android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "gradle_plugin_version" }
+# Dependencies of the included build-logic
+android-tools-common = { group = "com.android.tools", name = "common", version.ref = "androidTools" }
+compose-gradlePlugin = { module = "org.jetbrains.kotlin:compose-compiler-gradle-plugin", version.ref = "kotlin_version" }
+
+androidx-appCompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx_core" }
+androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment-ktx" }
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activity-ktx" }
+
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
+
+google-material = { module = "com.google.android.material:material", version.ref = "google_material" }
+androidx-constraintLayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidx_constraintLayout" }
+
+# ViewModel
+lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle_version" }
+# Lifecycles only = { module =without ViewModel or LiveData}
+lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle_version" }
+
+kotlin-serialization-ktolin = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.7.3" }
+kotlin-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin_coroutines" }
+kotlin-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlin_coroutines" }
+
+[plugins]
+#application和library插件
+android-application = { id = "com.android.application", version.ref = "gradle_plugin_version" }
+android-library = { id = "com.android.library", version.ref = "gradle_plugin_version" }
+#kotlin支持
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin_version" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin_version" }
+#compose编译器
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin_version" }
+##################################内建插件#########################################
+# Plugins defined by this project
+buildLogic-android-app = { id = "kiylx.build_logic.android.application", version = "unspecified" }
+buildLogic-android-library = { id = "kiylx.build_logic.android.library", version = "unspecified" }
+buildLogic-android-compose = { id = "kiylx.build_logic.android.compose", version = "unspecified" }
+
+#buildLogic-android-props = { id = "com.github.knightwood.gradle.plugin.props", version = "unspecified" }
+buildLogic-android-xml-props = { id = "com.github.knightwood.gradle.plugin.xml-properties", version = "0.0.1" }
+
+
+##################################其他插件#########################################
+# kotlin序列化插件的版本会跟kotlin编译器同时发布，因此一致
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin_version" }
+
+
+[bundles]
+bundleAndroidx = [
+    "androidx-appCompat", "androidx-core-ktx",
+    "androidx-fragment-ktx", "androidx-activity-ktx",
+    "lifecycle-runtime-ktx", "lifecycle-viewmodel-ktx",
+    "androidx-constraintLayout"
+]
+
+kotlins = ["kotlin-coroutines-core", "kotlin-coroutines-android"]

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<file name="Test" package="com.torch.app_base.htt">
+    <!--match元素只能出现一次，没有match的会被忽略-->
+<!--    <match build-type="release,debug1" default="true" flavor="master" />-->
+
+    <import package="com.squareup.kotlinpoet">
+        <import name="CodeBlock" />
+        <import name="FileSpec" />
+    </import>
+
+    <import name="TypeSpec" package="com.squareup.kotlinpoet" />
+
+    <!--默认类型是String,支持修饰符，默认是public的-->
+    <val name="first" modifier="private">"http://www.bing.com"</val>
+    <!--内置类型可以简单的使用一个type指定-->
+    <val name="b" type="Boolean">true</val>
+    <!--也可以有表达式 c : Boolean = 1<2 -->
+    <val name="c" type="Boolean">1&lt;2</val>
+    <!--如果不是内置类型，也没有泛型，则可以简单的用package指明类型的包名-->
+    <!--nullable暂不支持，还在开发。可以使用nullable指定这是否可为空，默认为false-->
+    <val name="second" nullable="false" package="com.example.entity" type="ClassRoom">
+        ClassRoom()
+    </val>
+    <!--对于有泛型的类型-->
+    <val name="list" type="List">
+        <generics>
+            <type name="String" />
+        </generics>
+        <code>mutableListOf()</code>
+    </val>
+    <!--val map:Map<String,List<out Student>> = mutableMapOf()-->
+    <val name="map" type="Map">
+        <generics>
+            <type name="String" />
+            <type name="List" package="kotlin.collections">
+                <!--type内使用type的嵌套来描述泛型参数 -->
+                <!--如果是val、var这样的属性，内部会含有代码块，但对于type，内部不会有代码块-->
+                <!--因此，属性使用了generics将泛型包裹，类型的泛型直接嵌套即可-->
+                <!--type还支持修饰符，比如 in out等-->
+                <type name="Student" modifier="out" package="com.example.entity" />
+            </type>
+        </generics>
+        <code>mutableMapOf()</code>
+    </val>
+
+    <object-class name="MainApi">
+        <val name="first" type="String">"http://www.bing.com"</val>
+    </object-class>
+
+
+    <!--关于类和函数，目前没有实现-->
+
+    <class name="HttpPath" modifier="internal,open">
+        <constructor>
+            <var name="hasCopy" type="Boolean">true</var>
+            <var name="isMutable" type="Boolean">true</var>
+        </constructor>
+
+        <extends>
+            <super-interface name="MainApi" package="com.example.Apis" />
+            <super-class name="MainRepo" package="com.example.Repo">
+                <generics>
+                    <type name="String" />
+                    <type name="List">
+                        <type name="String" />
+                    </type>
+                </generics>
+
+                <constructor>
+                    <var name="hasCopy" type="Boolean">true</var>
+                    <var name="isMutable" type="Boolean">true</var>
+                </constructor>
+
+            </super-class>
+        </extends>
+
+        <val name="first" type="String">"http://www.bing.com"</val>
+        <var name="second" type="Boolean">true</var>
+    </class>
+
+    <fun name="getPath" modifier="public">
+        <!--接收者函数，和上面的type类似，不带泛型的，直接在receiver属性里写明即可，非内置类型的需要写明package-->
+<!--        <receiver name="String" package="" />-->
+        <!--对于有泛型的，在块中指明，且因为不是属性，不用<generics>包裹。如果泛型复杂，直接使用type嵌套-->
+        <receiver name="List" >
+            <type name="String"/>
+        </receiver>
+
+        <return>
+            <val name="list" type="List">
+                <generics>
+                    <type name="String" />
+                </generics>
+            </val>
+        </return>
+
+        <params>
+            <!--参数列表直接使用val定义即可-->
+            <val name="path">"http://www.bing.com"</val>
+        </params>
+
+        <code>
+            return mutableListOf&lt;String&gt;()
+        </code>
+
+    </fun>
+
+
+</file>
