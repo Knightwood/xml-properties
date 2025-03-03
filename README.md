@@ -297,3 +297,35 @@ sourceSets {
     }
 }
 ```
+
+# 多国语言
+
+使用properties文件定义字符串，然后生成代码文件
+可以通过修改Locale来动态加载properties文件，修改语言。
+
+1. version catalog
+buildLogic-i18n = { id = "com.github.knightwood.gradle.plugin.i18n", version = "0.0.1" }
+
+2. 应用插件：
+```kotlin
+plugins {
+    alias(libs.plugins.buildLogic.i18n)
+}
+
+i18n {
+    //文件的基础路径在插件的module下面，因此，文件放在src/main/resources下即可，
+    //像这样指定相对目录
+    inDir = "src/commonMain/resources/i18n"
+    outDir = myCodeGenOutDir //这个还是跟上一节一样，生成代码的输出目录
+}
+```
+使用：
+```kotlin
+
+fun main() {
+    LanguageManager.getInstance("i18n", Locale.US).apply {
+        load()
+        println(read("app_name", "12", 31))
+    }
+}
+```

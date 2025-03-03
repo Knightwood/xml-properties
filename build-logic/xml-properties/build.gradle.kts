@@ -82,6 +82,13 @@ gradlePlugin {
             implementationClass = "plugin.BuildConfigPlugin"
             version = "0.0.1"
         }
+        register("i18nPlugin") {
+            id = "com.github.knightwood.gradle.plugin.i18n"
+            displayName = "Plugin for i18n"
+            description = "A plugin that helps you test your plugin against a variety of Gradle versions"
+            implementationClass = "plugin.I18nPlugin"
+            version = "0.0.1"
+        }
     }
 }
 

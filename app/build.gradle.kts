@@ -19,6 +19,7 @@ plugins {
     alias(buildLibs.plugins.buildLogic.android.app)
     alias(buildLibs.plugins.buildLogic.android.compose)
     alias(buildLibs.plugins.buildLogic.android.xml.props)
+    alias(buildLibs.plugins.buildLogic.i18n)
 }
 xmlProps {
     enabled = true // 是否启用
