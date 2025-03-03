@@ -34,6 +34,7 @@ import org.gradle.kotlin.dsl.register
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
 import org.gradle.work.Incremental
 import plugin.parsed.xml.generagor.Xml2KotlinFileGenerator
 import java.io.File
@@ -85,6 +86,12 @@ class XmlPropertiesPlugin : Plugin<Project> {
         }
     }
 
+    /**
+     * 创建核心task
+     *
+     * @param target
+     * @param variant
+     */
     private fun createTask(target: Project, variant: Variant) {
         val codeGenTaskTaskProvider =
             target.tasks.register<CodeGenTask>(variant.name.capitalized()) {
@@ -131,6 +138,7 @@ class XmlPropertiesPlugin : Plugin<Project> {
 abstract class CodeGenTask : DefaultTask() {
 
     @get:Input
+    @get:Optional
     abstract val flavorName: Property<String?>
 
     @get:Input
@@ -163,7 +171,7 @@ abstract class CodeGenTask : DefaultTask() {
             //生成代码文件
             Xml2KotlinFileGenerator(
                 buildType = buildTypeName.get(),
-                flavor = flavorName.get(),
+                flavor = flavorName.orNull,
                 xmlFile = xmlFile,
                 outPutDir = outputFile,
             ).generate()

@@ -75,6 +75,13 @@ gradlePlugin {
             implementationClass = "plugin.XmlPropertiesPlugin"
             version = "0.0.1"
         }
+        register("buildConfigPlugin") {
+            id = "com.github.knightwood.gradle.plugin.buildConfig"
+            displayName = "Plugin for BUILD CONFIG"
+            description = "A plugin that helps you test your plugin against a variety of Gradle versions"
+            implementationClass = "plugin.BuildConfigPlugin"
+            version = "0.0.1"
+        }
     }
 }
 

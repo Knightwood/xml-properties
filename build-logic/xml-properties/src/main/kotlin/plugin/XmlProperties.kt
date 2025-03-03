@@ -52,6 +52,9 @@ fun main() {
 @RequiresOptIn(level = RequiresOptIn.Level.WARNING)
 annotation class ExperimentalFeature
 
+/**
+ * xml解析插件配置
+ */
 interface AppProperties : Serializable {
     /**
      * 是否启用插件
@@ -65,8 +68,49 @@ interface AppProperties : Serializable {
 
     /**
      * 要解析哪个文件夹下的xml文件
+     *
+     * 这是个相对与项目根目录的路径。
+     *
+     * 若指定为resources，即project/resources/
+     *
+     * 若指定为apps/abc，即project/apps/abc/
      */
     var dir: String
+
+    /**
+     * 在安卓中使用时可以为null，会默认输出到generate目录。
+     *
+     * 在kmp项目中使用时，需要自行指定输出位置并将其追加到页码目录。
+     * 比如
+     * ```
+     *
+     * //指定源码的生成路径
+     * val myCodeGenOutDir = "build/generated/mycode"
+     * xmlProps {
+     *     dir = "apps/composeApp2/resources/buildconfig" // 配置文件所在目录
+     *     outDir = myCodeGenOutDir
+     * }
+     *
+     *  // kmp项目
+     * kotlin {
+     *   sourceSets {
+     *      commonMain.configure {
+     *          kotlin.srcDir(myCodeGenOutDir) // 添加生成的代码为源码
+     *      }
+     *   }
+     * }
+     *
+     * // 普通kotlin项目
+     * sourceSets {
+     *     main {
+     *         kotlin {
+     *             srcDirs(myCodeGenOutDir)
+     *         }
+     *     }
+     * }
+     * ```
+     */
+    var outDir: String?
 
     /**
      * 如果无法解析当前任务，则使用此BuildType和Flavor。
@@ -91,12 +135,23 @@ interface AppProperties : Serializable {
     fun targetDir(parentDir: String, pair: VariantBean): File
 }
 
+/**
+ * xml解析插件配置接口实现类
+ *
+ * @property dir
+ * @property enabled
+ * @property excludeFile
+ * @property defaultBV
+ */
 open class AppPropertiesImpl(
     override var dir: String = "resources",
     override var enabled: Boolean = true,
     override var excludeFile: ArrayList<String> = ArrayList(),
     override var defaultBV: VariantBean = VariantBean(null, null),
 ) : AppProperties, Serializable {
+
+    override var outDir: String? = null
+
     /**
      * 列出所有xml合法的文件
      *
@@ -302,6 +357,7 @@ class AppPropertiesPlugin : Plugin<Project> {
         firstTest(target)
     }
 }
+
 /**
  * 判断是library module还是app module
  */

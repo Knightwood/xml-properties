@@ -238,3 +238,62 @@ xmlProps {
 </file>
 
 ```
+
+# kmp项目中使用
+
+基本步骤与上面相同，只是插件id不同
+
+1. 在example项目的`build.gradle.kts`文件中配置插件
+```
+plugins {
+    id("com.github.knightwood.gradle.plugin.buildConfig") version "0.0.1" apply false
+    //或者你可以在version catlog 中声明插件后引入
+    //alias(buildLibs.plugins.buildLogic.buildConfig) apply false
+}
+```
+2. 在example项目的app module或者其他module的`build.gradle.kts`文件中引入插件
+```
+plugins {    
+    id("com.github.knightwood.gradle.plugin.buildConfig")
+    //或者你可以在version catlog 中声明插件后引入
+    //alias(buildLibs.plugins.buildLogic.buildConfig)
+}
+```
+
+3. 在gradle.kts中使用插件
+
+要生成代码，在右侧的gradle面板中找到others目录，然后双击"kmp-buildConfig-task"，即可生成代码
+
+```kotlin
+
+val myCodeGenOutDir = "build/generated/mycode"
+xmlProps {
+    dir = "apps/composeApp2/resources/buildconfig" // 待解析的xml配置文件所在目录
+    excludeFile += "example.xml" // 排除文件
+    outDir = myCodeGenOutDir // 生成的代码输出目录
+}
+
+// kmpBuildConfig配置，xml文件将根据此配置解析不同文件，生成代码
+KmpBuildConfig {
+    buildType = plugin.BuildType.debug
+}
+
+//kmp配置
+kotlin {
+    sourceSets {
+        commonMain.configure {
+            kotlin.srcDir(myCodeGenOutDir) // 生成的代码需要注册进源集
+            dependencies {}
+        }
+    }
+}
+
+// 普通kotlin项目
+sourceSets {
+    main {
+        kotlin {
+            srcDirs(myCodeGenOutDir)
+        }
+    }
+}
+```
