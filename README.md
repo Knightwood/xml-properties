@@ -176,7 +176,7 @@ build一下，即可看到在`app/build/generated/java`生成的代码文件
 该插件可以进行的一些配置
 在app module的`build.gradle.kts`中配置
 ```
-xmlProps {
+androidXmlProps {
     enabled = true // 是否启用
     dir = "examples" // 配置文件所在目录（文件夹需要在rootProject下，不能放在项目之外的位置）
     excludeFile += "example.xml" // 排除文件
@@ -244,19 +244,24 @@ xmlProps {
 基本步骤与上面相同，只是插件id不同
 
 1. 在example项目的`build.gradle.kts`文件中配置插件
+kmp项目中，android module使用android.xml.props插件，非android module使用buildConfig插件，两个插件可以同时引入。
 ```
 plugins {
     id("com.github.knightwood.gradle.plugin.buildConfig") version "0.0.1" apply false
+    id("com.github.knightwood.gradle.plugin.xml-properties") version "0.0.1" apply false
     //或者你可以在version catlog 中声明插件后引入
     //alias(buildLibs.plugins.buildLogic.buildConfig) apply false
+    //alias(buildLibs.plugins.buildLogic.android.xml.props) apply false
 }
 ```
 2. 在example项目的app module或者其他module的`build.gradle.kts`文件中引入插件
 ```
 plugins {    
     id("com.github.knightwood.gradle.plugin.buildConfig")
+    id("com.github.knightwood.gradle.plugin.xml-properties")
     //或者你可以在version catlog 中声明插件后引入
     //alias(buildLibs.plugins.buildLogic.buildConfig)
+    //alias(buildLibs.plugins.buildLogic.android.xml.props)
 }
 ```
 
@@ -267,21 +272,29 @@ plugins {
 ```kotlin
 
 val myCodeGenOutDir = "build/generated/mycode"
+
+// kmpBuildConfig配置，xml文件将根据此配置解析不同文件，生成代码
+//这个配置只能针对非android的target，且需要自己手动添加sourcesets、调用task
+KmpBuildConfig {
+    buildType = plugin.BuildType.debug
+}
+//kmp项目中，非android的target使用这个进行配置
 xmlProps {
     dir = "apps/composeApp2/resources/buildconfig" // 待解析的xml配置文件所在目录
     excludeFile += "example.xml" // 排除文件
     outDir = myCodeGenOutDir // 生成的代码输出目录
 }
-
-// kmpBuildConfig配置，xml文件将根据此配置解析不同文件，生成代码
-KmpBuildConfig {
-    buildType = plugin.BuildType.debug
+//kmp项目中，android项目使用这个进行配置
+androidXmlProps {
+    enabled = true // 是否启用
+    dir = "examples" // 配置文件所在目录（文件夹需要在rootProject下，不能放在项目之外的位置）
+    excludeFile += "example.xml" // 排除文件
 }
-
 //kmp配置
 kotlin {
     sourceSets {
-        commonMain.configure {
+        //仅配置jvm就行了。android部分会自动生成
+        jvmMain.configure {
             kotlin.srcDir(myCodeGenOutDir) // 生成的代码需要注册进源集
             dependencies {}
         }
@@ -295,6 +308,11 @@ sourceSets {
             srcDirs(myCodeGenOutDir)
         }
     }
+}
+
+//1. 在build.gradle.kts中添加如下代码，用于kmp项目生成配置文件类
+val createConfig by tasks.register("createConfig") {
+    dependsOn(tasks.named("kmp-buildConfig-task"))
 }
 ```
 

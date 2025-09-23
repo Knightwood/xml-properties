@@ -78,7 +78,7 @@ interface AppProperties : Serializable {
     var dir: String
 
     /**
-     * 在安卓中使用时可以为null，会默认输出到generate目录。
+     * 在安卓中使用时不需要指定此参数，会默认输出到generate目录。
      *
      * 在kmp项目中使用时，需要自行指定输出位置并将其追加到页码目录。
      * 比如

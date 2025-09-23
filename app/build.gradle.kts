@@ -21,7 +21,8 @@ plugins {
     alias(buildLibs.plugins.buildLogic.android.xml.props)
     alias(buildLibs.plugins.buildLogic.i18n)
 }
-xmlProps {
+
+androidXmlProps {
     enabled = true // 是否启用
     dir = "resources" // 配置文件所在目录
     excludeFile += "example.xml" // 排除文件

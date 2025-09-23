@@ -43,7 +43,7 @@ import java.io.File
  * 在build.gradle文件中配置内容
  *
  * ```
- * xmlProps {
+ * androidXmlProps {
  *     enabled = true
  *     excludeFile += "test1.xml"
  * }
@@ -54,7 +54,7 @@ class XmlPropertiesPlugin : Plugin<Project> {
 
         target.extensions.create(
             AppProperties::class.java,
-            "xmlProps",
+            "androidXmlProps",
             AppPropertiesImpl::class.java,
         )
 
@@ -95,7 +95,7 @@ class XmlPropertiesPlugin : Plugin<Project> {
     private fun createTask(target: Project, variant: Variant) {
         val codeGenTaskTaskProvider =
             target.tasks.register<CodeGenTask>(variant.name.capitalized()) {
-                val xmlProps = target.property("xmlProps") as AppProperties
+                val androidXmlProps = target.property("androidXmlProps") as AppProperties
 //                println("flavor:${variant.flavorName} -- buildType:${variant.buildType}")
 
                 //flavor、buildType、outputDir
@@ -106,7 +106,7 @@ class XmlPropertiesPlugin : Plugin<Project> {
 
                 //input xml files
                 val listProperty = target.objects.listProperty(File::class.java)
-                val xmls = xmlProps.files(target.rootProject)
+                val xmls = androidXmlProps.files(target.rootProject)
                 listProperty.set(xmls)
                 inputXmlFile.set(listProperty)
             }
@@ -152,7 +152,7 @@ abstract class CodeGenTask : DefaultTask() {
      *
      * ```
      * val listProperty = target.objects.listProperty(File::class.java)
-     * val xmls = xmlProps.files(target.rootProject)
+     * val xmls = androidXmlProps.files(target.rootProject)
      * listProperty.set(xmls)
      * inputXmlFile.set(listProperty)
      * ```

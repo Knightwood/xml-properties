@@ -59,7 +59,7 @@ buildLogic-android-library = { id = "kiylx.build_logic.android.library", version
 buildLogic-android-compose = { id = "kiylx.build_logic.android.compose", version = "unspecified" }
 
 #buildLogic-android-props = { id = "com.github.knightwood.gradle.plugin.props", version = "unspecified" }
-buildLogic-android-xml-props = { id = "com.github.knightwood.gradle.plugin.xml-properties", version = "0.0.1" }
+buildLogic-android-xml-props = { id = "com.github.knightwood.gradle.plugin.xml-properties", version = "0.0.2" }
 buildLogic-build-comfig = { id = "com.github.knightwood.gradle.plugin.buildConfig", version = "0.0.1" }
 buildLogic-i18n = { id = "com.github.knightwood.gradle.plugin.i18n", version = "0.0.1" }
 

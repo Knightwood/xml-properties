@@ -24,7 +24,8 @@ plugins {
 }
 
 group = "com.github.knightwood.gradle.plugin"
-version = "0.0.1"
+val versionName = "0.0.1"
+version = versionName
 
 
 // Configure the build-logic plugins to target JDK 17
@@ -73,21 +74,21 @@ gradlePlugin {
             displayName = "Plugin for convert xml to kotlin of Gradle plugins"
             description = "A plugin that helps you test your plugin against a variety of Gradle versions"
             implementationClass = "plugin.XmlPropertiesPlugin"
-            version = "0.0.1"
+            version = versionName
         }
         register("buildConfigPlugin") {
             id = "com.github.knightwood.gradle.plugin.buildConfig"
             displayName = "Plugin for BUILD CONFIG"
             description = "A plugin that helps you test your plugin against a variety of Gradle versions"
             implementationClass = "plugin.BuildConfigPlugin"
-            version = "0.0.1"
+            version = versionName
         }
         register("i18nPlugin") {
             id = "com.github.knightwood.gradle.plugin.i18n"
             displayName = "Plugin for i18n"
             description = "A plugin that helps you test your plugin against a variety of Gradle versions"
             implementationClass = "plugin.I18nPlugin"
-            version = "0.0.1"
+            version = versionName
         }
     }
 }
@@ -96,9 +97,9 @@ publishing {
     publications {
         repositories {
             mavenLocal()
-//            maven {
-//                url = uri("../repo")
-//            }
+            maven {
+                url = uri("../repo")
+            }
         }
     }
 }
