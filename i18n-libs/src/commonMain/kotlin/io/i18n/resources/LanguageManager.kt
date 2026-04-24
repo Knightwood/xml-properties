@@ -17,8 +17,6 @@
 
 package io.i18n.resources
 
-import com.github.knightwood.slf4j.kotlin.logger
-import org.gradle.internal.impldep.bsh.commands.dir
 import java.util.Locale
 import java.util.Properties
 

@@ -19,23 +19,6 @@ package plugin
 
 import java.io.Serializable
 
-interface BuildConfig : Serializable {
-    /**
-     * 是否启用该插件，默认启用
-     */
-    var enable: Boolean
-
-    /**
-     * [BuildType.release]、[BuildType.debug]、等
-     */
-    var buildType: BuildType
-}
-
-open class BuildConfigImpl : BuildConfig, Serializable {
-    override var enable: Boolean = true
-    override var buildType: BuildType = BuildType.debug
-}
-
 /**
  * 描述当前的构建类型
  *

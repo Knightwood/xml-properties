@@ -62,6 +62,11 @@ interface AppProperties : Serializable {
     var enabled: Boolean
 
     /**
+     * [BuildType.release]、[BuildType.debug]、等
+     */
+    var buildType: BuildType
+
+    /**
      * 哪些xml文件需要排除，填写名称即可，比如: example.xml
      */
     var excludeFile: ArrayList<String>
@@ -78,43 +83,20 @@ interface AppProperties : Serializable {
     var dir: String
 
     /**
+     *
      * 在安卓中使用时不需要指定此参数，会默认输出到generate目录。
      *
-     * 在kmp项目中使用时，需要自行指定输出位置并将其追加到页码目录。
-     * 比如
-     * ```
+     * 在kmp项目中使用时，可以自行指定输出位置并将其追加到源码目录。
      *
-     * //指定源码的生成路径
-     * val myCodeGenOutDir = "build/generated/mycode"
-     * xmlProps {
-     *     dir = "apps/composeApp2/resources/buildconfig" // 配置文件所在目录
-     *     outDir = myCodeGenOutDir
-     * }
-     *
-     *  // kmp项目
-     * kotlin {
-     *   sourceSets {
-     *      commonMain.configure {
-     *          kotlin.srcDir(myCodeGenOutDir) // 添加生成的代码为源码
-     *      }
-     *   }
-     * }
-     *
-     * // 普通kotlin项目
-     * sourceSets {
-     *     main {
-     *         kotlin {
-     *             srcDirs(myCodeGenOutDir)
-     *         }
-     *     }
-     * }
-     * ```
+     * 默认生成在build/[BASE_DIR]目录下
+     * 如果指定为“test”，将在build/test目录下生成包和类文件
      */
-    var outDir: String?
+    var outDir: String
 
     /**
      * 如果无法解析当前任务，则使用此BuildType和Flavor。
      */
+    @Deprecated("xmlProperties用不到了")
     var defaultBV: VariantBean
 
     /**
@@ -147,10 +129,19 @@ open class AppPropertiesImpl(
     override var dir: String = "resources",
     override var enabled: Boolean = true,
     override var excludeFile: ArrayList<String> = ArrayList(),
+    @Deprecated("xmlProperties用不到了")
     override var defaultBV: VariantBean = VariantBean(null, null),
 ) : AppProperties, Serializable {
 
-    override var outDir: String? = null
+    override var outDir: String =BASE_DIR
+
+    /**
+     * 由于Android中依靠agp插件提供的 buildType和 flavor，此变量在Android module中无用
+     *
+     * Android agp插件没有提供用于确定当前构建变体的api，只有在agp插件提供的菜单中才能明确知道当前所处于哪个构建变体，
+     * 没法做到jvm的构建变体自动和Android的联动
+     */
+    override var buildType: BuildType =  BuildType.release
 
     /**
      * 列出所有xml合法的文件

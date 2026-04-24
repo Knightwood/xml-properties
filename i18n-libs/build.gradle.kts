@@ -18,31 +18,54 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    `kotlin-dsl`
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinSerialization)
+    alias(buildLibs.plugins.buildLogic.i18n)
+}
+
+val myCodeGenOutDir = "build/generated/mycode"
+
+i18n {
+    inDir = "src/main/resources/i18n"
+    outDir = myCodeGenOutDir
 }
 
 group = "com.github.knightwood.gradle.plugin"
 version = "0.0.1"
 
-
-// Configure the build-logic plugins to target JDK 17
-// This matches the JDK used to build the project, and is not related to what is running on device.
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-    withSourcesJar()
-    withJavadocJar()
-}
-
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_17
+        jvmToolchain(17)
+    }
+    jvm() {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_17
+        }
+    }
+    sourceSets {
+        val commonMain by getting {
+            kotlin.srcDir(myCodeGenOutDir)
+            dependencies {
+                implementation(libs.slf4j.api)
+                implementation(libs.slf4j.api.kotlin)
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.datetime)
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.components.resources)
+            }
+        }
+        val jvmMain by getting {
+            dependencies {
+                implementation(libs.logback.classic)
+            }
+        }
     }
 }
-
-dependencies {
-    implementation(buildLibs.kotlin.coroutines.core)
-    implementation(buildLibs.kotlin.datetime)
-    implementation("org.slf4j:slf4j-api:2.0.15")
-    implementation("com.github.knightwood:slf4j-api-kotlin:0.0.7")
-}
+/*
+ crosspasted没有使用插件生成资源id，使用时需要手动拼写id，从property文件中读取数据，使用String.format格式化
+ downloader使用了插件生成资源id，仅支持{{name}}格式，使用replace替换。
+ 还提供了compose函数，方便参数变更时自动更新。代码质量不高。
+ */

@@ -1,0 +1,62 @@
+[versions]
+androidTools = "31.4.0"
+android-minSdk = "26"
+android-targetSdk = "34"
+android-compileSdk = "36"
+agp = "8.10.0"
+lifecycle = "2.9.6"
+navigation = "2.9.1"
+androidx_core = "1.17.0"
+appcompat = "1.7.0"
+fragment-ktx = "1.8.9"
+activity-ktx = "1.11.0"
+activity_compose_version = "1.11.0"
+
+kotlin = "2.2.21"
+
+compose-plugin = "1.9.3"
+kotlinx-coroutines = "1.10.2"
+kotlinx-datetime = "0.7.1-0.6.x-compat"
+kotlinx-serialization = "1.9.0"
+kotlinx-uuid = "0.1.6"
+koin = "4.1.1"
+logback = "1.5.20"
+
+
+[libraries]
+androidx-appCompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx_core" }
+androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment-ktx" }
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activity-ktx" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity_compose_version" }
+
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
+
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-uuid = { module = "app.softwork:kotlinx-uuid-core", version.ref = "kotlinx-uuid" }
+
+lifecycle-common = { module = "org.jetbrains.androidx.lifecycle:lifecycle-common", version.ref = "lifecycle" }
+lifecycle-runtime = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime", version.ref = "lifecycle" }
+lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+
+material-desktop = { module = "org.jetbrains.compose.material:material-desktop", version.ref = "compose-plugin" }
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation" }
+
+slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.15" }
+slf4j-api-kotlin = { module = "com.github.knightwood:slf4j-api-kotlin", version = "0.0.7" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+slf4j-t0-androidlog = { module = "uk.uuid.slf4j:slf4j-android", version = "2.0.17-0" }
+
+[plugins]
+application = { id = "com.android.application", version.ref = "agp" }
+library = { id = "com.android.library", version.ref = "agp" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

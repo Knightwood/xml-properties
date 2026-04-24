@@ -24,7 +24,7 @@ plugins {
 }
 
 group = "com.github.knightwood.gradle.plugin"
-val versionName = "0.0.1"
+val versionName = "0.0.2"
 version = versionName
 
 
@@ -44,8 +44,11 @@ kotlin {
 }
 
 dependencies {
-    compileOnly(libs.kotlin.gradlePlugin)
-    compileOnly(libs.android.gradlePlugin)
+    compileOnly(gradleApi())
+    compileOnly(kotlin("gradle-plugin"))
+//    compileOnly(libs.kotlin.gradlePlugin)
+    compileOnly(libs.plugin.android)
+    compileOnly(libs.plugin.android.api)
     compileOnly(libs.android.tools.common)
     implementation("com.squareup:kotlinpoet:2.0.0")
 }
@@ -69,18 +72,19 @@ gradlePlugin {
 //            description = "A plugin that helps you test your plugin against a variety of Gradle versions"
 //            implementationClass = "plugin.AppPropertiesPlugin"
 //        }
-        register("xmlPlugin") {
+        register("android_xml2class") {
             id = "com.github.knightwood.gradle.plugin.xml-properties"
             displayName = "Plugin for convert xml to kotlin of Gradle plugins"
             description = "A plugin that helps you test your plugin against a variety of Gradle versions"
-            implementationClass = "plugin.XmlPropertiesPlugin"
+            implementationClass = "plugin.AndroidXmlPropertiesPlugin"
             version = versionName
         }
-        register("buildConfigPlugin") {
-            id = "com.github.knightwood.gradle.plugin.buildConfig"
-            displayName = "Plugin for BUILD CONFIG"
+
+        register("jvm_xml2class") {
+            id = "com.github.knightwood.gradle.plugin.jvm-xml-properties"
+            displayName = "Plugin for convert xml to kotlin of Gradle plugins"
             description = "A plugin that helps you test your plugin against a variety of Gradle versions"
-            implementationClass = "plugin.BuildConfigPlugin"
+            implementationClass = "plugin.JvmXmlPropertiesPlugin"
             version = versionName
         }
         register("i18nPlugin") {
@@ -98,7 +102,8 @@ publishing {
         repositories {
             mavenLocal()
             maven {
-                url = uri("../repo")
+                name = "MyMavenLocal"
+                url = uri("F:\\.m2\\repository")
             }
         }
     }

@@ -17,12 +17,14 @@
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    alias(buildLibs.plugins.android.application) apply false
-    alias(buildLibs.plugins.android.library) apply false
     alias(buildLibs.plugins.kotlin.android) apply false
-    alias(buildLibs.plugins.kotlin.serialization) apply false
-    alias(buildLibs.plugins.compose.compiler) apply false
     alias(buildLibs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.compose.compiler) apply false
+    alias(libs.plugins.jetbrainsCompose) apply false
+    alias(libs.plugins.kotlinMultiplatform) apply false
+    alias(libs.plugins.kotlinSerialization) apply false
+    alias(libs.plugins.application) apply false
+    alias(libs.plugins.library) apply false
 
     //插件发布后，需要在这添加依赖
 //    id("com.github.knightwood.gradle.plugin.xml-properties") version "0.0.1" apply false

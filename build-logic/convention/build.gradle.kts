@@ -44,7 +44,8 @@ kotlin {
 
 dependencies {
     compileOnly(libs.kotlin.gradlePlugin)
-    compileOnly(libs.android.gradlePlugin)
+    compileOnly(libs.plugin.android)
+    compileOnly(libs.plugin.android.api)
     compileOnly(libs.compose.gradlePlugin)
     compileOnly(libs.android.tools.common)
     implementation("com.squareup:kotlinpoet:2.0.0")

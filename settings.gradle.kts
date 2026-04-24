@@ -53,5 +53,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Xml2Kotlin"
-include(":app")
+//include(":app")
 include(":i18n-libs")

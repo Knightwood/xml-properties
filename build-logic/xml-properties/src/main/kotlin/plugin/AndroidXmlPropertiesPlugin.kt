@@ -26,6 +26,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -35,6 +36,7 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputFile
 import org.gradle.work.Incremental
 import plugin.parsed.xml.generagor.Xml2KotlinFileGenerator
 import java.io.File
@@ -49,7 +51,7 @@ import java.io.File
  * }
  * ```
  */
-class XmlPropertiesPlugin : Plugin<Project> {
+class AndroidXmlPropertiesPlugin : Plugin<Project> {
     override fun apply(target: Project) {
 
         target.extensions.create(
@@ -94,7 +96,7 @@ class XmlPropertiesPlugin : Plugin<Project> {
      */
     private fun createTask(target: Project, variant: Variant) {
         val codeGenTaskTaskProvider =
-            target.tasks.register<CodeGenTask>(variant.name.capitalized()) {
+            target.tasks.register<CodeGenTask>("generateKtCodeFromXml_${variant.name.capitalized()}") {
                 val androidXmlProps = target.property("androidXmlProps") as AppProperties
 //                println("flavor:${variant.flavorName} -- buildType:${variant.buildType}")
 
