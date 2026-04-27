@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<file name="Test" package="com.torch.app_base.htt">
+    <!--match元素只能出现一次，没有match的会被忽略-->
+    <!--    <match build-type="release,debug1" default="true" flavor="master" />-->
+
+    <!--import 语法定义-->
+    <import package="com.squareup.kotlinpoet">
+        <import name="CodeBlock" as="CB"/>
+        <import name="FileSpec"/>
+    </import>
+    <import name="TypeSpec" as="TS" package="com.squareup.kotlinpoet"/>
+    <import name="*" package="java.io"/>
+
+    <!--变量 语法定义-->
+    <!--使用 val/var 定义变量-->
+    <!-- 修饰符 public/private/protected/internal/abstract/open/out/in/operate/inline/infix/suspend/reified -->
+    <!-- 不同修饰符使用空格隔开-->
+    <!--使用name定义变量名称-->
+    <var modifier="public open abstract" name="baseDir" type="String">
+        <!-- jdk内置基本类型且无泛型的，可以在上面直接使用type-->
+        <!--如果不是简单类型，在这里使用type块定义类型，类型可嵌套，表示这是个泛型类型，类型定义中也可使用修饰符-->
+        <!-- 所有出现的类型需要在上面使用import引入-->
+        <type name="Map">
+            <type name="String"/>
+            <type name="Map" modifier="out">
+                <type name="T" modifier="reified"/>
+                <type name="*"/>
+            </type>
+        </type>
+
+        <!--代码区域定义，分为普通初始化代码区域、getter、setter-->
+        <code>
+            <initializer>
+                mutableMapOf()//委托也算是普通代码块 //by lazy { mutableMapOf() }
+            </initializer>
+
+            <getter>
+                return field
+            </getter>
+
+            <setter>
+                field = value
+            </setter>
+
+        </code>
+
+        <!--如果仅有初始化代码块，可以省略掉initializer-->
+        <code>
+            mutableMapOf()
+        </code>
+    </var>
+    <!-- 示例： -->
+    <!--默认类型是String,支持修饰符，默认是public的-->
+    <val name="first" modifier="private">"http://www.bing.com"</val>
+    <!--内置类型可以简单的使用一个type指定-->
+    <val name="b" type="Boolean">true</val>
+    <!--也可以有表达式 c : Boolean = 1<2 -->
+    <val name="c" type="Boolean">1&lt;2</val>
+
+
+    <!--object 类-->
+    <object name="MainApi" modifier="internal">
+        <!-- 此类继实现了哪些父接口 -->
+        <super>
+            <type name="Closable"/>
+        </super>
+
+        <val name="first" type="String">"http://www.bing.com"</val>
+    </object>
+
+    <!-- 接口类定义-->
+    <interface name="IAutoScope">
+        <!-- 此接口继承自哪些父接口 -->
+        <super>
+            <type name="Closable"/>
+        </super>
+
+        <!--接口中的变量没有初始化块-->
+        <val name="com" type="String"/>
+
+        <!--接口方法无方法体，若有，是为default方法-->
+        <fun name="getPath" modifier="public override inline">
+            <!--接收者类型使用receiver块定义，内部使用普通的type块表示接收者类型-->
+            <receiver name="List">
+                <type name="String"/>
+            </receiver>
+
+            <!--泛型定义，使用generics块定义泛型区域，类型使用type系统定义-->
+            <generics>
+                <type name="T"/>
+                <type name="R" modifier="reified"/>
+            </generics>
+
+            <!--形参列表-->
+            <params>
+                <!--参数列表直接使用val定义即可-->
+                <val name="path">"http://www.bing.com"</val>
+                <val name="dir">
+                    <type name="Map">
+                        <type name="String"/>
+                        <type name="List" modifier="out">
+                            <type name="*"/>
+                        </type>
+                    </type>
+                </val>
+            </params>
+
+            <!--返回值类型-->
+            <type name="Map">
+                <type name="String"/>
+                <type name="List" modifier="out">
+                    <type name="*"/>
+                </type>
+            </type>
+        </fun>
+    </interface>
+
+    <!--方法定义-->
+    <fun name="getPath" modifier="public override inline">
+
+        <!--接收者类型使用receiver块定义，内部使用普通的type块表示接收者类型-->
+        <receiver name="List">
+            <type name="String"/>
+        </receiver>
+
+        <!--泛型定义，使用generics块定义泛型区域，类型使用type系统定义-->
+        <generics>
+            <type name="T"/>
+            <type name="R" modifier="reified"/>
+        </generics>
+
+        <!--形参列表-->
+        <params>
+            <!--参数列表直接使用val定义即可-->
+            <val name="path">"http://www.bing.com"</val>
+            <val name="dir">
+                <type name="Map">
+                    <type name="String"/>
+                    <type name="List" modifier="out">
+                        <type name="*"/>
+                    </type>
+                </type>
+            </val>
+        </params>
+
+        <!--返回值类型-->
+        <type name="Map">
+            <type name="String"/>
+            <type name="List" modifier="out">
+                <type name="*"/>
+            </type>
+        </type>
+
+        <!--代码块(可选，如果是接口中的方法、抽象方法，没有代码块)-->
+        <code>
+            return mutableListOf&lt;String&gt;()
+        </code>
+
+    </fun>
+</file>

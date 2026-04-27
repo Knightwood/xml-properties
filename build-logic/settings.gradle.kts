@@ -26,3 +26,5 @@ dependencyResolutionManagement {
 rootProject.name = "build-logic"
 include(":convention")
 include(":xml-properties")
+include(":i18n")
+include(":append-sources")

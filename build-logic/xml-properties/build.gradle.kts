@@ -45,6 +45,7 @@ kotlin {
 
 dependencies {
     compileOnly(gradleApi())
+    //实质上就是org.jetbrains.kotlin:kotlin-gradle-plugin:version
     compileOnly(kotlin("gradle-plugin"))
 //    compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.plugin.android)
@@ -85,13 +86,6 @@ gradlePlugin {
             displayName = "Plugin for convert xml to kotlin of Gradle plugins"
             description = "A plugin that helps you test your plugin against a variety of Gradle versions"
             implementationClass = "plugin.JvmXmlPropertiesPlugin"
-            version = versionName
-        }
-        register("i18nPlugin") {
-            id = "com.github.knightwood.gradle.plugin.i18n"
-            displayName = "Plugin for i18n"
-            description = "A plugin that helps you test your plugin against a variety of Gradle versions"
-            implementationClass = "plugin.I18nPlugin"
             version = versionName
         }
     }
