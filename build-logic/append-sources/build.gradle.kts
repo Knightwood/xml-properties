@@ -46,11 +46,16 @@ kotlin {
 dependencies {
     compileOnly(gradleApi())
     //实质上就是org.jetbrains.kotlin:kotlin-gradle-plugin:version
-    compileOnly(kotlin("gradle-plugin"))
-//    compileOnly(libs.kotlin.gradlePlugin)
-    compileOnly(libs.plugin.android)
-    compileOnly(libs.plugin.android.api)
-    compileOnly(libs.android.tools.common)
+//    compileOnly(kotlin("gradle-plugin"))
+    compileOnly(libs.pluginApi.agp)
+    compileOnly(libs.pluginApi.agp.api)
+    compileOnly(libs.pluginApi.android.tools.common)
+    implementation(libs.semver)
+    implementation(libs.pluginApi.gradle.kts)
+    implementation(libs.pluginApi.compose.multiplatform)
+    //似乎引入上面的libs.pluginApi.gradle.kts，这个libs.pluginApi.compose.multiplatform就用不上了
+    implementation(libs.pluginApi.kotlin.multiplatform)
+    implementation("com.squareup:kotlinpoet:2.0.0")
 }
 
 tasks {

@@ -46,10 +46,10 @@ kotlin {
 dependencies {
     compileOnly(gradleApi())
     compileOnly(kotlin("gradle-plugin"))
-//    compileOnly(libs.kotlin.gradlePlugin)
-    compileOnly(libs.plugin.android)
-    compileOnly(libs.plugin.android.api)
-    compileOnly(libs.android.tools.common)
+//    compileOnly(libs.pluginApi.gradle.kts)
+    compileOnly(libs.pluginApi.agp)
+    compileOnly(libs.pluginApi.agp.api)
+    compileOnly(libs.pluginApi.android.tools.common)
     implementation("com.squareup:kotlinpoet:2.0.0")
 }
 
