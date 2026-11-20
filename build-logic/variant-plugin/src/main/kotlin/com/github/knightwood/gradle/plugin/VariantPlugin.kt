@@ -14,7 +14,6 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 
 /**
  * Variant plugin
@@ -135,7 +134,7 @@ class VariantPlugin : Plugin<Project> {
             buildConfigClassName.set(config.buildConfigClassName)
             allTargetBuildConfigFields.set(config.buildConfigFields)
             outputFolder.set(layout.buildDirectory.dir("generated/source/buildConfig"))
-            targetNames.set(provider { targets.map { it.name } })
+            allTargetKotlinSourceSets.set(provider { targets})
         }
         //只要触发 import操作，就让task执行
         // 抄自compose multiplatform 插件

@@ -19,6 +19,10 @@ pluginManagement {
     includeBuild("build-logic")
     repositories {
         mavenLocal()
+        maven {
+            name = "MyLocalMaven"
+            url = uri("F:/.m2/repository")
+        }
         google {
             content {
                 includeGroupByRegex("com\\.android.*")
@@ -38,6 +42,10 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenLocal()
+        maven {
+            name = "MyLocalMaven"
+            url = uri("F:/.m2/repository")
+        }
         google()
         mavenCentral()
         maven("https://www.jitpack.io")
@@ -49,9 +57,13 @@ dependencyResolutionManagement {
         create("buildLibs") {
             from(files("./build-logic/gradle/libs.versions.toml"))
         }
+        create("desktops") {
+            from(files("./gradle/desktop.versions.toml"))
+        }
     }
 }
 
 rootProject.name = "Xml2Kotlin"
-//include(":app")
+include(":app")
+include(":desktopApp")
 //include(":i18n-libs")

@@ -73,7 +73,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                     buildConfig =true
                 }
                 kotlinOptions {
-                    jvmTarget = JavaVersion.VERSION_17.toString()
+                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
                 }
             }
         }

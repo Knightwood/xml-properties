@@ -2,11 +2,12 @@ package com.github.knightwood.gradle.plugin.extensions
 
 import com.github.knightwood.gradle.plugin.model.CustomSourceSet
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.ExtensionAware
 import javax.inject.Inject
 
-abstract class SourceSetCollectionExtension {
+abstract class SourceSetCollectionExtension: ExtensionAware  {
     @get:Inject
-    internal abstract val objects: ObjectFactory
+    abstract val objects: ObjectFactory
 
     internal val container = objects.domainObjectContainer<CustomSourceSet>(CustomSourceSet::class.java)
 

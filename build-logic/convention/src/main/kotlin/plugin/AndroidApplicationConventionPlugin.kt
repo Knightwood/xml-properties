@@ -19,6 +19,7 @@ package plugin
 
 import com.android.build.api.dsl.ApplicationExtension
 import com.kiylx.common.dependences.AndroidBuildCode
+import groovyjarjarantlr4.v4.codegen.target.JavaTarget
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -75,9 +76,9 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                     viewBinding = true
                     buildConfig =true
                 }
-                kotlinOptions {
-                    jvmTarget = JavaVersion.VERSION_17.toString()
-                }
+//                kotlinOptions {
+//                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+//                }
                 packagingOptions {
                     resources {
                         excludes += "/META-INF/{AL2.0,LGPL2.1}"

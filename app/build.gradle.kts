@@ -16,8 +16,8 @@
  */
 
 plugins {
-    alias(buildLibs.plugins.buildLogic.android.app)
-    alias(buildLibs.plugins.buildLogic.android.compose)
+    alias(libs.plugins.buildLogic.android.app)
+    alias(libs.plugins.buildLogic.android.compose)
     alias(buildLibs.plugins.buildLogic.android.xml.props)
     alias(buildLibs.plugins.buildLogic.i18n)
 }
@@ -45,13 +45,13 @@ android {
 }
 
 dependencies {
-    implementation(buildLibs.bundles.bundleAndroidx)
-    implementation(buildLibs.google.material) {
+    implementation(libs.bundles.bundleAndroidx)
+    implementation(libs.google.material) {
         exclude("androidx.activity", "activity")
         exclude("androidx.appcompat", "appcompat")
         exclude("androidx.constraintlayout", "constraintlayout")
         exclude("androidx.core", "core")
         exclude("androidx.recyclerview", "recyclerview")
     }
-    implementation(buildLibs.bundles.kotlins)
+    implementation(libs.bundles.kotlins)
 }

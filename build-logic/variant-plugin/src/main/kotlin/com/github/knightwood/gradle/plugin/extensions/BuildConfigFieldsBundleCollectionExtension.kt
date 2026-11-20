@@ -2,16 +2,17 @@ package com.github.knightwood.gradle.plugin.extensions
 
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.ExtensionAware
 import javax.inject.Inject
 import kotlin.reflect.KClass
 
-abstract class BuildConfigFieldsBundleCollectionExtension {
+abstract class BuildConfigFieldsBundleCollectionExtension : ExtensionAware {
     @get:Inject
-    internal abstract val objects: ObjectFactory
+    abstract val objects: ObjectFactory
 
     internal val container = objects.domainObjectContainer(BuildConfigFieldBundleBuilder::class.java)
-    var packageName: String? = null
-    var className: String? = null
+    var packageName: String = "com.github.knightwood.config"
+    var className: String = "BuildConfig"
 
     /**
      * 向container中添加一个BuildConfigBuilder实例，
@@ -29,6 +30,12 @@ abstract class BuildConfigFieldsBundleCollectionExtension {
     }
 }
 
+/**
+ * Creates a new config field bundle builder
+ *
+ * @constructor Creates a new BuildConfigFieldBundleBuilder
+ * @property name target名称，例如commonMain， androidMain，jvmMain等
+ */
 open class BuildConfigFieldBundleBuilder(val name: String) {
     internal val fields = mutableSetOf<BuildConfigField>()
 

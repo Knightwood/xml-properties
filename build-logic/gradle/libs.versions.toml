@@ -34,6 +34,7 @@ vanniktech-publish-plugin = {  module = "com.vanniktech:gradle-maven-publish-plu
 semver = { module = "io.github.z4kn4fein:semver", version.ref = "semver" }
 
 [plugins]
+publish = { id = "com.vanniktech.maven.publish", version = "0.34.0" }
 #application和library插件
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
@@ -45,8 +46,9 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 ##################################内建插件#########################################
 #buildLogic-android-props = { id = "com.github.knightwood.gradle.plugin.props", version = "unspecified" }
 buildLogic-android-xml-props = { id = "com.github.knightwood.gradle.plugin.xml-properties", version = "0.0.2" }
-buildLogic-build-comfig = { id = "com.github.knightwood.gradle.plugin.buildConfig", version = "0.0.1" }
+#buildLogic-build-comfig = { id = "com.github.knightwood.gradle.plugin.buildConfig", version = "0.0.1" }
 buildLogic-i18n = { id = "com.github.knightwood.gradle.plugin.i18n", version = "0.0.1" }
+buildLogic-variant-plugin = { id = "com.github.knightwood.gradle.plugin.VariantPlugin", version = "0.0.2" }
 
 
 ##################################其他插件#########################################

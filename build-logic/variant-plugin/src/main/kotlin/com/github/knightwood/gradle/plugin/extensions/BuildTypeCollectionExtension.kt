@@ -5,11 +5,14 @@ import org.gradle.api.NamedDomainObjectContainer
 import javax.inject.Inject
 import org.gradle.api.logging.Logger
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.ExtensionAware
 
-abstract class BuildTypeCollectionExtension @Inject constructor(
-    objectFactory: ObjectFactory,
-    val logger: Logger,
-) {
+abstract class BuildTypeCollectionExtension: ExtensionAware  {
+    @get:Inject
+    abstract val objectFactory: ObjectFactory
+    @get:Inject
+    abstract val logger: Logger
+
     private val variantContainer: NamedDomainObjectContainer<BuiltTypeBuilder> =
         objectFactory.domainObjectContainer(BuiltTypeBuilder::class.java)
 
@@ -64,10 +67,6 @@ abstract class BuildTypeCollectionExtension @Inject constructor(
  * @constructor Creates a new BuiltTypeBuilder
  * @property name
  */
-abstract class BuiltTypeBuilder constructor(val name: String) : VariantBuilder(), Named {
-    override fun getName(): String {
-        return name
-    }
-
+abstract class BuiltTypeBuilder constructor(val name: String) : VariantBuilder() {
     var isDebug: Boolean = false
 }

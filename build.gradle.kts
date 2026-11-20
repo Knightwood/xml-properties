@@ -19,8 +19,9 @@
 plugins {
     alias(buildLibs.plugins.kotlin.android) apply false
     alias(buildLibs.plugins.kotlin.jvm) apply false
+    alias(buildLibs.plugins.publish) apply false
     alias(libs.plugins.compose.compiler) apply false
-    alias(libs.plugins.jetbrainsCompose) apply false
+    alias(desktops.plugins.composeMultiplatform) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.kotlinSerialization) apply false
     alias(libs.plugins.application) apply false

@@ -4,21 +4,26 @@ import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import javax.inject.Inject
 import org.gradle.api.Project
+import org.gradle.api.logging.Logger
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.container
 
-abstract class FlavorCollectionExtension @Inject constructor(
-    objectFactory: ObjectFactory,
-    val project: Project,
-) {
+abstract class FlavorCollectionExtension : ExtensionAware {
+    @get:Inject
+    abstract val objectFactory: ObjectFactory
+
+    @get:Inject
+    abstract val logger: Logger
+
     private val variantContainer: NamedDomainObjectContainer<FlavorBuilder> =
-        project.container(FlavorBuilder::class)
+        objectFactory.domainObjectContainer(FlavorBuilder::class.java)
 
     fun create(name: String, action: FlavorBuilder.() -> Unit) {
         if (variantContainer.findByName(name) == null) {
             variantContainer.create(name, action)
         } else {
-            project.logger.warn("Flavor $name already exists")
+            logger.warn("Flavor $name already exists")
         }
     }
 
@@ -31,18 +36,24 @@ abstract class FlavorCollectionExtension @Inject constructor(
 }
 
 abstract class VariantBuilder {
+    @get:Inject
+    abstract val objectFactory: ObjectFactory
+    val distributionInfoBuilder: DistributionInfoBuilderExtension =
+        objectFactory.newInstance(DistributionInfoBuilderExtension::class.java)
 
-    internal abstract val distributionInfoBuilder: DistributionInfoBuilderExtension
     fun distribution(action: Action<DistributionInfoBuilderExtension>) {
         action.execute(distributionInfoBuilder)
     }
 
-    internal abstract val sourceSetBuilder: SourceSetCollectionExtension
+    val sourceSetBuilder: SourceSetCollectionExtension =
+        objectFactory.newInstance(SourceSetCollectionExtension::class.java)
+
     fun sourceSets(action: Action<SourceSetCollectionExtension>) {
         action.execute(sourceSetBuilder)
     }
 
-    internal abstract val buildConfigBuilder: BuildConfigFieldsBundleCollectionExtension
+    val buildConfigBuilder: BuildConfigFieldsBundleCollectionExtension =
+        objectFactory.newInstance(BuildConfigFieldsBundleCollectionExtension::class.java)
 
     /**
      * 最终会根据配置生成 BuildConfig.kt 文件

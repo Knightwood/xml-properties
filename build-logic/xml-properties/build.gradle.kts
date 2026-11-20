@@ -93,6 +93,13 @@ gradlePlugin {
 
 publishing {
     publications {
+        create<MavenPublication>("maven") {
+            pom {
+                groupId = "com.github.knightwood.gradle.plugin"
+                artifactId = "xml-properties"
+                version = versionName
+            }
+        }
         repositories {
             mavenLocal()
             maven {
