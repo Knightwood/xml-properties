@@ -38,20 +38,25 @@ abstract class FlavorCollectionExtension : ExtensionAware {
 abstract class VariantBuilder {
     @get:Inject
     abstract val objectFactory: ObjectFactory
+    internal var distributionInfoBuilderExtensionIsSet = false
     internal val distributionInfoBuilder: DistributionInfoBuilderExtension =
         objectFactory.newInstance(DistributionInfoBuilderExtension::class.java)
 
     fun distribution(action: Action<DistributionInfoBuilderExtension>) {
+        distributionInfoBuilderExtensionIsSet = true
         action.execute(distributionInfoBuilder)
     }
 
+    internal var sourceSetBuilderExtensionIsSet = false
     internal val sourceSetBuilder: SourceSetCollectionExtension =
         objectFactory.newInstance(SourceSetCollectionExtension::class.java)
 
     fun sourceSets(action: Action<SourceSetCollectionExtension>) {
+        sourceSetBuilderExtensionIsSet = true
         action.execute(sourceSetBuilder)
     }
 
+    internal var buildConfigBuilderExtensionIsSet = false
     internal val buildConfigBuilder: BuildConfigFieldsBundleCollectionExtension =
         objectFactory.newInstance(BuildConfigFieldsBundleCollectionExtension::class.java)
 
@@ -98,6 +103,7 @@ abstract class VariantBuilder {
      * @param action
      */
     fun buildConfigs(action: Action<BuildConfigFieldsBundleCollectionExtension>) {
+        buildConfigBuilderExtensionIsSet = true
         action.execute(buildConfigBuilder)
     }
 }

@@ -129,20 +129,30 @@ abstract class VariantExtensions @Inject constructor(
 
             //先写入buildType，再写入flavor，后写入的已配置项覆盖先写入的
             builtType.distributionInfoBuilder.mergeTo(distributionInfo)
-            flavor?.distributionInfoBuilder?.mergeTo(distributionInfo)
+            flavor?.let {
+                if (it.distributionInfoBuilderExtensionIsSet) {
+                    it.distributionInfoBuilder.mergeTo(distributionInfo)
+                }
+            }
 
             builtType.sourceSetBuilder.mergeTo(customSourceSets)
-            flavor?.sourceSetBuilder?.mergeTo(customSourceSets)
+            flavor?.let {
+                if (it.sourceSetBuilderExtensionIsSet) {
+                    it.sourceSetBuilder.mergeTo(customSourceSets)
+                }
+            }
 
             builtType.buildConfigBuilder.mergeTo(buildConfigFields)
-            flavor?.buildConfigBuilder?.mergeTo(buildConfigFields)
+            buildConfigPackageName.set(builtType.buildConfigBuilder.packageName)
+            buildConfigClassName.set(builtType.buildConfigBuilder.className)
+            flavor?.let {
+                if (it.buildConfigBuilderExtensionIsSet) {
+                    it.buildConfigBuilder.mergeTo(buildConfigFields)
+                    buildConfigPackageName.set(it.buildConfigBuilder.packageName)
+                    buildConfigClassName.set(it.buildConfigBuilder.className)
+                }
+            }
             organizeBuildConfigFieldsBundleContainers(buildConfigFields)
-            buildConfigPackageName.set(
-                flavor?.buildConfigBuilder?.packageName ?: builtType.buildConfigBuilder.packageName
-            )
-            buildConfigClassName.set(
-                flavor?.buildConfigBuilder?.className ?: builtType.buildConfigBuilder.className
-            )
         }
         return mergedConfiguration
     }
@@ -166,7 +176,8 @@ abstract class MergedVariantExtension : ExtensionAware {
     abstract val debug: Property<Boolean>
     abstract val buildTypeName: Property<String>
     abstract val flavorName: Property<String?>
-    val distributionInfo: DistributionInfoBuilderExtension = objects.newInstance(DistributionInfoBuilderExtension::class.java)
+    val distributionInfo: DistributionInfoBuilderExtension =
+        objects.newInstance(DistributionInfoBuilderExtension::class.java)
     val customSourceSets = objects.domainObjectContainer<CustomSourceSet>(CustomSourceSet::class.java)
     val buildConfigFields = objects.domainObjectContainer(BuildConfigFieldBundleBuilder::class.java)
     abstract val buildConfigPackageName: Property<String>
