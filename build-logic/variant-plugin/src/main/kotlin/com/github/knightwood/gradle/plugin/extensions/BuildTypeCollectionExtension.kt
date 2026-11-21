@@ -1,6 +1,5 @@
 package com.github.knightwood.gradle.plugin.extensions
 
-import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
 import javax.inject.Inject
 import org.gradle.api.logging.Logger
@@ -46,12 +45,12 @@ abstract class BuildTypeCollectionExtension: ExtensionAware  {
     internal fun addDefaultBuilder() {
         if (variantContainer.findByName("release") == null) {
             variantContainer.create("release") {
-                isDebug = false
+                debug = false
             }
         }
         if (variantContainer.findByName("debug") == null) {
             variantContainer.create("debug") {
-                isDebug = true
+                debug = true
             }
         }
     }
@@ -68,5 +67,5 @@ abstract class BuildTypeCollectionExtension: ExtensionAware  {
  * @property name
  */
 abstract class BuiltTypeBuilder constructor(val name: String) : VariantBuilder() {
-    var isDebug: Boolean = false
+    var debug: Boolean = false
 }

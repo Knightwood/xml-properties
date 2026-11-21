@@ -1,6 +1,5 @@
 package com.github.knightwood.gradle.plugin.extensions
 
-import com.github.knightwood.gradle.plugin.model.CustomSourceSet
 import org.gradle.api.Action
 import javax.inject.Inject
 import org.gradle.api.InvalidUserDataException
@@ -74,9 +73,9 @@ abstract class VariantExtensions @Inject constructor(
     val project: Project,
 ) : ExtensionAware {
     abstract val activeVariant: Property<String>
-    val buildTypeCollectionExtension: BuildTypeCollectionExtension =
+    internal val buildTypeCollectionExtension: BuildTypeCollectionExtension =
         objectFactory.newInstance(BuildTypeCollectionExtension::class.java)
-    val flavorCollectionExtension: FlavorCollectionExtension =
+    internal val flavorCollectionExtension: FlavorCollectionExtension =
         objectFactory.newInstance(FlavorCollectionExtension::class.java)
 
     fun buildType(action: Action<BuildTypeCollectionExtension>) {
@@ -124,7 +123,7 @@ abstract class VariantExtensions @Inject constructor(
 
         //合并配置，优先级：flavor > buildType
         mergedConfiguration.apply {
-            debug.set(builtType.isDebug)
+            debug.set(builtType.debug)
             this.buildTypeName.set(builtType.name)
             this.flavorName.set(flavor?.name)
 
@@ -137,7 +136,7 @@ abstract class VariantExtensions @Inject constructor(
 
             builtType.buildConfigBuilder.mergeTo(buildConfigFields)
             flavor?.buildConfigBuilder?.mergeTo(buildConfigFields)
-
+            organizeBuildConfigFieldsBundleContainers(buildConfigFields)
             buildConfigPackageName.set(
                 flavor?.buildConfigBuilder?.packageName ?: builtType.buildConfigBuilder.packageName
             )
@@ -199,18 +198,41 @@ private fun CustomSourceSet.copyFrom(source: CustomSourceSet) {
 }
 
 /**
- * 将当前BuildConfig配置写入 [target]，按bundle名称合并：
- * 同名字段以当前配置优先，不同名的字段则追加。
+ * 将用户配置的每个target的BuildConfig字段组 写入 [targetContainer]
+ * 多次调用此方法时，同名字段以当前配置（targetContainer）优先，不同名的字段则追加。
+ *
+ * @receiver 每个平台的BuildConfig字段组容器，将写入targetContainer
+ * @param targetContainer 每个平台的BuildConfig字段组容器
  */
 private fun BuildConfigFieldsBundleCollectionExtension.mergeTo(
-    target: NamedDomainObjectContainer<BuildConfigFieldBundleBuilder>,
+    targetContainer: NamedDomainObjectContainer<BuildConfigFieldBundleBuilder>,
 ) {
-    container.forEach { bundle ->
-        val merged = target.findByName(bundle.name) ?: target.create(bundle.name) {}
-        bundle.isExpect?.let { merged.isExpect = it }
-        val overriddenNames = bundle.fields.map { it.name }.toSet()
+    container.forEach { bundleOnTarget ->
+        val merged = targetContainer.findByName(bundleOnTarget.name) ?: targetContainer.create(bundleOnTarget.name) {}
+        bundleOnTarget.expect?.let { merged.expect = it }
+        val overriddenNames = bundleOnTarget.fields.map { it.name }.toSet()
         merged.fields.removeIf { it.name in overriddenNames }
-        merged.fields.addAll(bundle.fields)
+        merged.fields.addAll(bundleOnTarget.fields)
+    }
+}
+
+/**
+ * Organize build config fields bundle containers
+ * 在多次调用mergeTo方法将BuildType、Flavor中每个平台的BuildConfig字段合并且添加到 [MergedVariantExtension.buildConfigFields]之后，
+ * 我们需要再次处理合并后的容器，将所有标记了expect==false的BuildConfig字段Bundle中所有字段添加到 expect==true的BuildConfig字段Bundle中，
+ *
+ * @param container
+ */
+private fun organizeBuildConfigFieldsBundleContainers(container: NamedDomainObjectContainer<BuildConfigFieldBundleBuilder>) {
+    val expectFalseBundles = container.filter { it.expect == false }
+    expectFalseBundles.forEach { expectFalseBundle ->
+        container.filter { it.expect == true }.forEach { expectTrueBundle ->
+            expectFalseBundle.fields.forEach { field ->
+                if (!expectTrueBundle.fields.contains(field)) {
+                    expectTrueBundle.fields.add(field)
+                }
+            }
+        }
     }
 }
 
@@ -236,14 +258,14 @@ private fun VariantExtensions.example() {
                 className = "BuildConfig"
 
                 create("commonMain") {
-                    isExpect = true
+                    expect = true
                     this + intField("AGE", 18)
                     this + booleanField("IS_DEBUG", false)
                     this + stringField("GENDER", null)
-                    this + field<IntRange>("AGE", 2..10)
+//                    this + field<IntRange>("AGE", 2..10)
                 }
                 create("jvmMain") {
-                    isExpect = false
+                    expect = false
                     this + stringField("NAME", "Knightwood")
                 }
             }

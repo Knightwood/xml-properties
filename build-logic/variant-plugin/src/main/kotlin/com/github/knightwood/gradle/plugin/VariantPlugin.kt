@@ -4,6 +4,7 @@ import com.github.knightwood.gradle.plugin.PluginConsts.IDEA_IMPORT_TASK_NAME
 import com.github.knightwood.gradle.plugin.buildconfig_generator.BuildConfigGeneratorTask
 import com.github.knightwood.gradle.plugin.extensions.MergedVariantExtension
 import com.github.knightwood.gradle.plugin.extensions.VariantExtensions
+import com.github.knightwood.gradle.plugin.extensions.toInput
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.NamedDomainObjectContainer
@@ -12,6 +13,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.SourceSet
 import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
@@ -129,12 +131,31 @@ class VariantPlugin : Plugin<Project> {
         config: MergedVariantExtension,
         targets: NamedDomainObjectCollection<KotlinSourceSet>,
     ) {
-        tasks.register<BuildConfigGeneratorTask>("GenerateBuildConfigTask") {
+        val outDirPath = layout.buildDirectory.dir("generated/source/buildConfig")
+        val generateTask = tasks.register<BuildConfigGeneratorTask>("GenerateBuildConfigTask") {
             buildConfigPackageName.set(config.buildConfigPackageName)
             buildConfigClassName.set(config.buildConfigClassName)
-            allTargetBuildConfigFields.set(config.buildConfigFields)
-            outputFolder.set(layout.buildDirectory.dir("generated/source/buildConfig"))
-            allTargetKotlinSourceSets.set(provider { targets})
+            allTargetBuildConfigFields.set(config.buildConfigFields.map { it.toInput() })
+//            allTargetBuildConfigFields.set(config.buildConfigFields)
+            outputFolder.set(outDirPath)
+            targetSourceSetNames.set(targets.names)
+        }
+        // 配置阶段把生成目录注册为源集目录，避免在执行阶段修改构建模型；
+        targets.configureEach {
+            println("add generated buildconfig dir to sourceSet: ${this.name}")
+            val sourceSet: KotlinSourceSet = this
+            val sourceSetName = sourceSet.name
+            /*
+            我尝试通过 generateTask 这个 TaskProvider 让编译任务自动依赖生成本任务，
+            通过获取generateTask.outputFolder追加到源集，失败了，报错说BuildConfigGeneratorTask任务还没执行完就预先获取了outputFolder
+            sourceSet.kotlin.srcDir(
+                   generateTask.flatMap { it.outputFolder }.map { it.dir("$sourceSetName/kotlin") }
+            )
+            */
+            // 不再通过 generateTask 输出目录追加到源集，直接使用outDirPath避免报错
+            sourceSet.kotlin.srcDir(
+                outDirPath.map { it.dir("$sourceSetName/kotlin") }
+            )
         }
         //只要触发 import操作，就让task执行
         // 抄自compose multiplatform 插件

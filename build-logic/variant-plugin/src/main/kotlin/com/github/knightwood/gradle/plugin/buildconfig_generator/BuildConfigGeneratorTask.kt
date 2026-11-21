@@ -1,21 +1,22 @@
 package com.github.knightwood.gradle.plugin.buildconfig_generator
 
-import com.github.knightwood.gradle.plugin.extensions.BuildConfigField
-import com.github.knightwood.gradle.plugin.extensions.BuildConfigFieldBundleBuilder
+import com.squareup.kotlinpoet.ClassName
+//import com.github.knightwood.gradle.plugin.extensions.BuildConfigField
+//import com.github.knightwood.gradle.plugin.extensions.BuildConfigFieldBundleBuilder
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
-import com.squareup.kotlinpoet.asTypeName
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import java.io.File
 
 abstract class BuildConfigGeneratorTask : DefaultTask() {
@@ -45,13 +46,14 @@ abstract class BuildConfigGeneratorTask : DefaultTask() {
     abstract val outputFolder: DirectoryProperty
 
     /**
-     * 目前project配置的全部target的名称
+     * 当前 project 中实际存在的源集名称，仅用于过滤需要生成文件的 bundle。
+     * 只保存字符串，避免把 KGP 的活模型对象写进任务状态（配置缓存无法序列化）。
      */
     @get:Input
-    abstract val allTargetKotlinSourceSets: ListProperty<KotlinSourceSet>
+    abstract val targetSourceSetNames: SetProperty<String>
 
     /**
-     * 针对所有target的build config字段
+     * 针对所有 target 的 build config 字段，使用可序列化的最小数据模型
      */
     @get:Input
     abstract val allTargetBuildConfigFields: ListProperty<BuildConfigFieldBundleBuilder>
@@ -60,55 +62,47 @@ abstract class BuildConfigGeneratorTask : DefaultTask() {
     fun run() {
         val packageName = buildConfigPackageName.get()
         val className = buildConfigClassName.get()
-        val kotlinSourceSets = allTargetKotlinSourceSets.get()
-        val targetNames = kotlinSourceSets.map { it.name }.toSet()
+        val sourceSetNames = targetSourceSetNames.get()
 
-        allTargetBuildConfigFields.get().forEach { bundleBuilder ->
-            val sourceSet = kotlinSourceSets.firstOrNull { it.name == bundleBuilder.name }
+        allTargetBuildConfigFields.get().forEach { bundle ->
             //仅在有对应源集的 bundle 才生成文件
-            if (sourceSet != null) {
-                // 拼接后的路径是相对于project/build目录的路径
-                // 例如：
-                // build/generated/buildConfig/commonMain/kotlin/
-                // 最终包名、类名将传入kotlin poet，由kotlin poet生成包路径和kt文件
-                val destDirPath =
-                    outputFolder.get().dir("${bundleBuilder.name}${File.separator}kotlin${File.separator}")
+            if (bundle.name !in sourceSetNames) return@forEach
+            // 拼接后的路径是相对于project/build目录的路径
+            // 例如：build/generated/source/buildConfig/commonMain/kotlin/
+            val destDirPath =
+                outputFolder.get().dir("${bundle.name}${File.separator}kotlin${File.separator}")
 
-                // 生成build config文件
-                // 确定文件名，如果使用了kmp插件，有多个平台的源集，且isExpect不为null，
-                // 则commonMain/main target 使用BuildConfig.kt;
-                // jvmMain等非公共源集名称上追加target名称，例如 BuildConfig.jvmMain.kt
-                // 注意：这里不带.kt后缀，由kotlin poet在写文件时补充
-                val fileName = when (bundleBuilder.isExpect) {
-                    false -> "$className.${bundleBuilder.name}"
-                    else -> className
-                }
-
-                FileSpec.builder(packageName, fileName)
-                    .addType(buildConfigType(className, bundleBuilder))
-                    .build()
-                    .writeTo(destDirPath.asFile)
-                // 将生成的文件夹添加到源集目录
-                sourceSet.kotlin.srcDir(destDirPath.asFile)
+            // 生成build config文件
+            // 确定文件名，如果使用了kmp插件，有多个平台的源集，且isExpect不为null，
+            // 则commonMain/main target 使用BuildConfig.kt;
+            // jvmMain等非公共源集名称上追加target名称，例如 BuildConfig.jvmMain.kt
+            val fileName = when (bundle.isExpect) {
+                false -> "$className.${bundle.name}"
+                else -> className
             }
+
+            FileSpec.builder(packageName, fileName)
+                .addType(buildConfigType(className, bundle))
+                .build()
+                .writeTo(destDirPath.asFile)
         }
     }
 
     /**
-     * 生成 object BuildConfig，字段按 [bundleBuilder] 中的配置填充
+     * 生成 object BuildConfig，字段按 [bundle] 中的配置填充
      */
     private fun buildConfigType(
         className: String,
-        bundleBuilder: BuildConfigFieldBundleBuilder,
+        bundle: BuildConfigFieldBundleBuilder,
     ): TypeSpec {
-        val isExpect = bundleBuilder.isExpect == true
+        val isExpect = bundle.isExpect
         val typeBuilder = TypeSpec.objectBuilder(className)
-        when (bundleBuilder.isExpect) {
+        when (bundle.isExpect) {
             true -> typeBuilder.addModifiers(KModifier.EXPECT)
             false -> typeBuilder.addModifiers(KModifier.ACTUAL)
             null -> Unit
         }
-        bundleBuilder.fields.forEach { field ->
+        bundle.fields.forEach { field ->
             typeBuilder.addProperty(buildConfigProperty(field, isExpect))
         }
         return typeBuilder.build()
@@ -117,12 +111,21 @@ abstract class BuildConfigGeneratorTask : DefaultTask() {
     /**
      * expect 声明的属性不能带初始化器，因此 isExpect 时只声明类型，不填充值，
      * 同时也无法使用 const 修饰符（const 要求必须有初始值）。
+     * @param isExpect 是否为 expect 声明，null 表示不指定
      */
-    private fun buildConfigProperty(field: BuildConfigField, isExpect: Boolean): PropertySpec {
-        val type = field.cls.asTypeName().copy(nullable = field.value == null)
+    private fun buildConfigProperty(field: BuildConfigField, isExpect: Boolean?): PropertySpec {
+        val type = ClassName.bestGuess(field.typeName).copy(nullable = field.value == null)
+//        val type = field.cls.copy(nullable = field.value == null)
         val builder = PropertySpec.builder(field.name, type)
-        if (!isExpect) {
+        if (isExpect == null) {
             builder.initializer(field.initializer())
+        } else {
+            if (!isExpect) { //actual字段
+                builder.addModifiers(KModifier.ACTUAL)
+                builder.initializer(field.initializer())
+            } else {
+                builder.addModifiers(KModifier.EXPECT)
+            }
         }
         return builder.build()
     }
@@ -138,9 +141,9 @@ abstract class BuildConfigGeneratorTask : DefaultTask() {
             is Float -> CodeBlock.of("%Lf", v)
             is Double -> CodeBlock.of("%L", v)
             is Long -> CodeBlock.of("%LL", v)
-            is IntRange -> CodeBlock.of("%L..%L", v.first, v.last)
-            is LongRange -> CodeBlock.of("%LL..%LL", v.first, v.last)
-            is CharRange -> CodeBlock.of("'%L'..'%L'", v.first.escaped(), v.last.escaped())
+//            is IntRange -> CodeBlock.of("%L..%L", v.first, v.last)
+//            is LongRange -> CodeBlock.of("%LL..%LL", v.first, v.last)
+//            is CharRange -> CodeBlock.of("'%L'..'%L'", v.first.escaped(), v.last.escaped())
             else -> CodeBlock.of("%L", v)
         }
     }
@@ -154,3 +157,21 @@ abstract class BuildConfigGeneratorTask : DefaultTask() {
         else -> toString()
     }
 }
+
+/**
+ * 写入任务状态的 bundle 快照，只包含可序列化的基础数据
+ */
+data class BuildConfigBundleInput(
+    val name: String,
+    val isExpect: Boolean?,
+    val fields: List<BuildConfigFieldInput>,
+) : java.io.Serializable
+
+data class BuildConfigFieldInput(
+    val name: String,
+    /** 完整类型名，例如 kotlin.Int、kotlin.String、kotlin.ranges.IntRange */
+    val typeName: String,
+    val value: java.io.Serializable?,
+) : java.io.Serializable
+typealias BuildConfigFieldBundleBuilder = BuildConfigBundleInput
+typealias BuildConfigField = BuildConfigFieldInput

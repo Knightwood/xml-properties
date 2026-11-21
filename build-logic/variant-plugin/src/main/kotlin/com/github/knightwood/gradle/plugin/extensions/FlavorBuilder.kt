@@ -38,25 +38,62 @@ abstract class FlavorCollectionExtension : ExtensionAware {
 abstract class VariantBuilder {
     @get:Inject
     abstract val objectFactory: ObjectFactory
-    val distributionInfoBuilder: DistributionInfoBuilderExtension =
+    internal val distributionInfoBuilder: DistributionInfoBuilderExtension =
         objectFactory.newInstance(DistributionInfoBuilderExtension::class.java)
 
     fun distribution(action: Action<DistributionInfoBuilderExtension>) {
         action.execute(distributionInfoBuilder)
     }
 
-    val sourceSetBuilder: SourceSetCollectionExtension =
+    internal val sourceSetBuilder: SourceSetCollectionExtension =
         objectFactory.newInstance(SourceSetCollectionExtension::class.java)
 
     fun sourceSets(action: Action<SourceSetCollectionExtension>) {
         action.execute(sourceSetBuilder)
     }
 
-    val buildConfigBuilder: BuildConfigFieldsBundleCollectionExtension =
+    internal val buildConfigBuilder: BuildConfigFieldsBundleCollectionExtension =
         objectFactory.newInstance(BuildConfigFieldsBundleCollectionExtension::class.java)
 
     /**
      * 最终会根据配置生成 BuildConfig.kt 文件
+     *
+     * 如果使用kotlin jvm 插件，则不要指定expect，让它保持为null即可
+     * ```
+     * buildConfigs {
+     *     packageName = "com.github.knightwood"
+     *     className = "BuildConfig"
+     *
+     *     create("main") {
+     *         expect = null
+     *         this + intField("AGE", 18)
+     *         this + booleanField("IS_DEBUG", false)
+     *         this + stringField("GENDER", null)
+     *     }
+     *  }
+     * ```
+     *
+     * 如果使用kotlin kmp 插件，则需在commonMain target块中指定expect为true，在jvmMain target块中指定expect为false，
+     * 且在commonMain target块中定义的字段，在jvmMain target块中不能重复定义
+     * 在生成BuildConfig代码文件时会将全部target中定义的字段合并到一起，所以你可以不在commonMain中定义任何字段
+     * ```
+     * buildConfigs {
+     *     packageName = "com.github.knightwood"
+     *     className = "BuildConfig"
+     *
+     *     reate("commonMain") {
+     *         expect = true
+     *     }
+     *
+     *     create("jvmMain") {
+     *         expect = false
+     *         this + stringField("NAME", "Knightwood")
+     *         this + intField("AGE", 18)
+     *         this + booleanField("IS_DEBUG", false)
+     *         this + stringField("GENDER", null)
+     *     }
+     *  }
+     * ```
      *
      * @param action
      */
