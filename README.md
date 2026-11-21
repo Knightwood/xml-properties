@@ -1,349 +1,192 @@
-# 前言
+# variant-plugin
 
-用于在不同构建变体下解析xml配置文件，生成kotlin源码
+一个面向 Kotlin JVM / Kotlin Multiplatform（含 Compose Multiplatform Desktop）项目的**构建变体（Variant）插件**。
 
-这个插件可以根据当前构建项目的buildType和flavor，解析匹配条件的xml配置文件，生成kotlin代码放入源集。
+它可以用来：
 
-比如在debug和release下配置不同的请求地址，或是秘钥。
-
-类似于BuildConfig，可以在项目源码中直接使用。
-
-## 示例：
-
-### xml 文件
-```
-<?xml version="1.0" encoding="UTF-8" ?>
-<file name="AppConfig" package="com.android.config">
-    <match build-type="debug" default="true" />
-    <object-class name="AppConfig">
-        <val name="user">"admin"</val>
-        <val name="pwd">"123456"</val>
-        <val name="host">"http://192.168.0.33:6767"</val>
-        <val name="isDebug" type ="Boolean">true</val>
-
-        <!--对于有泛型的类型-->
-        <val name="list" type="List">
-            <generics>
-                <type name="String" />
-            </generics>
-            <code>mutableListOf()</code>
-        </val>
-        <!--val map:Map<String,List<Student>> = mutableMapOf()-->
-        <val name="map" type="Map">
-            <generics>
-                <type name="String" />
-                <type name="List" package="kotlin.collections">
-                    <type name="Student" package="com.vines.test.app" />
-                </type>
-            </generics>
-            <code>mutableMapOf()</code>
-        </val>
-
-    </object-class>
-</file>
+- 声明 `buildType`（如 `dev`、`release`）与 `flavor`（如 `free`、`paid`），用 `activeVariant` 指定当前生效的变体，命名规则为 `buildType-flavor`（flavor 可省略）, **flavor 的配置覆盖 buildType 的配置**。
+- 为不同变体**追加源码目录 / 资源目录**到对应的 Kotlin 源集（`commonMain`、`jvmMain`、`main` 等）。
+- 按变体**生成 `BuildConfig.kt`**（KMP 下自动生成 `expect object` 与 `actual object`），类似 Android 的 BuildConfig。
+- 按变体**收集桌面分发配置**（包名、版本、vendor、Linux/Windows/macOS 平台参数），再同步给 Compose 插件的 `nativeDistributions`。
 
 
-```
-### 生成的kotlin文件
-```
-package com.android.config
-
-import com.vines.test.app.Student
-import kotlin.Boolean
-import kotlin.String
-import kotlin.collections.List
-import kotlin.collections.Map
-
-public object AppConfig {
-  public val user: String = "admin"
-
-  public val pwd: String = "123456"
-
-  public val host: String = "http://192.168.0.33:6767"
-
-  public val isDebug: Boolean = true
-
-  public val list: List<String> = mutableListOf()
-
-  public val map: Map<String, List<Student>> = mutableMapOf()
-}
-
-
-```
-
-### 在项目中使用生成的代码
-
-```
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        
-        //使用生成的代码
-        val isDebug = AppConfig.isDebug
-        val user =AppConfig.user
-    }
-}
-```
-
-
-## xml文件与构建变体的匹配
-
-在xml文件中写match元素，声明此文件可以匹配的变体条件。
-如果xml文件中没有match元素，此文件将被忽略，不用于解析生成代码。
-
-```
-在buildType为release,debug1时生成kotlin代码
-<match build-type="release,debug1" />
-
-在buildType为release,debug1且flavor为master时生成kotlin代码
-<match build-type="release,debug1" flavor="master" />
-
-不论什么构建变体，这个文件都将用于生成kotlin代码
-<match default="true" />
-
-```
-
-
-
-
-# 使用方式：
-
-1. 拉取项目到本地
-
-2. 构建并发布到本地仓库
-  gradle命令： ./gradlew :build-logic:xml-properties:publish
-  
-   1. 发布到本地maven仓库
-        在`xml-properties`下的build.gradle.kts中配置maven仓库地址
-      ```
-      publishing {
-          publications {
-              repositories {
-                  mavenLocal()
-              }
-          }
-      }
-      ```
-   2. 发布到本地指定仓库（任意文件夹地址）
-      ```
-      publishing {
-          publications {
-              repositories {
-                  maven {
-                      url = uri("../repo") //这里的文件夹位置是build-logic/repo
-                  }
-              }
-          }
-      }
-      ```
-
-
-
-3. 使用插件
-例如在example项目中使用此插件
-   1. 在example项目的`settings.gradle.kts`文件中配置插件的仓库地址
-      ```
-      pluginManagement {
-          includeBuild("build-logic")
-          repositories {
-              mavenLocal() //如果发布到maven本地仓库使用这个
-              maven("./build-logic/repo") //如果发布到了本地指定仓库地址，则需要自己指定文件夹地址
-          }
-      }
-      ```
-    2. 在example项目的`build.gradle.kts`文件中配置插件
-      ```
-      plugins {
-          id("com.github.knightwood.gradle.plugin.xml-properties") version "0.0.1" apply false
-          //或者你可以在version catlog 中声明插件后引入
-          //alias(buildLibs.plugins.buildLogic.android.xml.props) apply false
-      }
-      ```
-      3. 在example项目的app module或者其他module的`build.gradle.kts`文件中引入插件
-      ```
-      plugins {
-          id("com.github.knightwood.gradle.plugin.xml-properties")
-          //或者你可以在version catlog 中声明插件后引入
-          //alias(buildLibs.plugins.buildLogic.android.xml.props)
-      }
-      ```
-4. 插件使用配置
-
-例如，在app module中引入了该插件
-将xml文件放入rootProject下的resources目录。
-build一下，即可看到在`app/build/generated/java`生成的代码文件
-
-该插件可以进行的一些配置
-在app module的`build.gradle.kts`中配置
-```
-androidXmlProps {
-    enabled = true // 是否启用
-    dir = "examples" // 配置文件所在目录（文件夹需要在rootProject下，不能放在项目之外的位置）
-    excludeFile += "example.xml" // 排除文件
-}
-
-```      
-5. xml 文件支持的内容
-
-```
-<?xml version="1.0" encoding="UTF-8" ?>
-<file name="Test" package="com.example.app">
-    <!--match元素只能出现一次，没有match的会被忽略-->
-    <match build-type="release" default="true" flavor="master" />
-
-    <!--可以手动引入一些类，实际上下面的解析会自动引入，不需要手动引入-->
-    <import package="com.squareup.kotlinpoet">
-        <import name="CodeBlock" />
-        <import name="FileSpec" />
-    </import>
-
-    <import name="TypeSpec" package="com.squareup.kotlinpoet" />
-
-    <!--默认类型是String,支持修饰符，默认是public的-->
-    <val name="first" modifier="private">"http://www.bing.com"</val>
-    <!--内置类型可以简单的使用一个type指定-->
-    <val name="b" type="Boolean">true</val>
-    <!--也可以有表达式 c : Boolean = 1<2 -->
-    <val name="c" type="Boolean">1&lt;2</val>
-    <!--如果不是内置类型，也没有泛型，则可以简单的用package指明类型的包名-->
-    <!--nullable暂不支持-->
-    <val name="second" package="com.example.entity" type="ClassRoom">
-        ClassRoom()
-    </val>
-    <!--对于有泛型的类型-->
-    <val name="list" type="List">
-        <generics>
-            <type name="String" />
-        </generics>
-    </val>
-    <!--val map:Map<String,List<out Student>> = mutableMapOf()-->
-    <val name="map" type="Map">
-        <generics>
-            <type name="String" />
-            <type name="List" package="kotlin.collections.List">
-                <!--type内使用type的嵌套来描述泛型参数 -->
-                <!--如果是val、var这样的属性，内部会含有代码块，但对于type，内部不会有代码块-->
-                <!--因此，属性使用了generics将泛型包裹，类型的泛型直接嵌套即可-->
-                <!--type还支持修饰符，比如 in out等-->
-                <type name="Student" modifier="out" package="com.example.entity" />
-            </type>
-        </generics>
-        <code>mutableMapOf()</code>
-    </val>
-
-    <object-class name="MainApi">
-        <val name="first" type="String">"http://www.bing.com"</val>
-    </object-class>
-
-</file>
-
-```
-
-# kmp项目中使用
-
-基本步骤与上面相同，只是插件id不同
-
-1. 在example项目的`build.gradle.kts`文件中配置插件
-kmp项目中，android module使用android.xml.props插件，非android module使用buildConfig插件，两个插件可以同时引入。
-```
-plugins {
-    id("com.github.knightwood.gradle.plugin.buildConfig") version "0.0.1" apply false
-    id("com.github.knightwood.gradle.plugin.xml-properties") version "0.0.1" apply false
-    //或者你可以在version catlog 中声明插件后引入
-    //alias(buildLibs.plugins.buildLogic.buildConfig) apply false
-    //alias(buildLibs.plugins.buildLogic.android.xml.props) apply false
-}
-```
-2. 在example项目的app module或者其他module的`build.gradle.kts`文件中引入插件
-```
-plugins {    
-    id("com.github.knightwood.gradle.plugin.buildConfig")
-    id("com.github.knightwood.gradle.plugin.xml-properties")
-    //或者你可以在version catlog 中声明插件后引入
-    //alias(buildLibs.plugins.buildLogic.buildConfig)
-    //alias(buildLibs.plugins.buildLogic.android.xml.props)
-}
-```
-
-3. 在gradle.kts中使用插件
-
-要生成代码，在右侧的gradle面板中找到others目录，然后双击"kmp-buildConfig-task"，即可生成代码
-
+## 引入插件依赖
+我还没有发布到 Maven Central，所以需要手动引入。
+1. clone此项目到本地
+2. 使用idea打开在右侧的gradle面板中找到build-logic→variant-plugin→Tasks→publish 执行 `publishAllPublicationsToMavenLocalRepository`
+3. 在你项目的settings.gradle.kts和模块的build.gradle.kts中引入
 ```kotlin
-
-val myCodeGenOutDir = "build/generated/mycode"
-
-// kmpBuildConfig配置，xml文件将根据此配置解析不同文件，生成代码
-//这个配置只能针对非android的target，且需要自己手动添加sourcesets、调用task
-KmpBuildConfig {
-    buildType = plugin.BuildType.debug
-}
-//kmp项目中，非android的target使用这个进行配置
-xmlProps {
-    dir = "apps/composeApp2/resources/buildconfig" // 待解析的xml配置文件所在目录
-    excludeFile += "example.xml" // 排除文件
-    outDir = myCodeGenOutDir // 生成的代码输出目录
-}
-//kmp项目中，android项目使用这个进行配置
-androidXmlProps {
-    enabled = true // 是否启用
-    dir = "examples" // 配置文件所在目录（文件夹需要在rootProject下，不能放在项目之外的位置）
-    excludeFile += "example.xml" // 排除文件
-}
-//kmp配置
-kotlin {
-    sourceSets {
-        //仅配置jvm就行了。android部分会自动生成
-        jvmMain.configure {
-            kotlin.srcDir(myCodeGenOutDir) // 生成的代码需要注册进源集
-            dependencies {}
-        }
-    }
-}
-
-// 普通kotlin项目
-sourceSets {
-    main {
-        kotlin {
-            srcDirs(myCodeGenOutDir)
-        }
-    }
-}
-
-//1. 在build.gradle.kts中添加如下代码，用于kmp项目生成配置文件类
-val createConfig by tasks.register("createConfig") {
-    dependsOn(tasks.named("kmp-buildConfig-task"))
-}
-```
-
-# 多国语言
-
-使用properties文件定义字符串，然后生成代码文件
-可以通过修改Locale来动态加载properties文件，修改语言。
-
-1. version catalog
-buildLogic-i18n = { id = "com.github.knightwood.gradle.plugin.i18n", version = "0.0.1" }
-
-2. 应用插件：
-```kotlin
+// settings.gradle.kts
 plugins {
-    alias(libs.plugins.buildLogic.i18n)
+    id("com.github.knightwood.gradle.plugin.VariantPlugin") version "0.0.2" apply false
 }
 
-i18n {
-    //文件的基础路径在插件的module下面，因此，文件放在src/main/resources下即可，
-    //像这样指定相对目录
-    inDir = "src/commonMain/resources/i18n"
-    outDir = myCodeGenOutDir //这个还是跟上一节一样，生成代码的输出目录
+// build.gradle.kts
+plugins {
+    id("com.github.knightwood.gradle.plugin.VariantPlugin") version "0.0.2"
 }
+
 ```
+
+## 使用插件
+
+* 变体Variant由buildType与flavor组成，可以定义多个buildType与flavor，然后使用activeVariant决定当前项目的所用buildType与flavor配置。
+* activeVariant值决定当前项目所用buildType与flavor配置，其命名使用"-"分隔`buildType名称-flavor名称`，例如`dev-free`即表示使用`dev` buildType和`free` flavor配置。
+* 每个buildType与flavor均可以配置三种配置项：1.customSourceSets 2.buildConfigs 3.distribution。
+* flavor是可选配置，你可以根本不调用flavor dsl块，或者仅给activeVariant设置buildType名称，例如activeVariant.set("dev")，表示仅使用`dev` buildType，不使用flavor。
+* flavor存在且在activeVariant中被使用时，flavor的配置会覆盖buildType的配置。
+* 可以通过variant.parseActiveVariant()方法获取当前激活的buildType与flavor合并后的配置。
+* distribution配置我担心直接设置给compose插件的extension可能会有问题，所以需要你手动获取变体合并后的配置设置给compose插件，相同情况的还有composeResource文件夹配置。
+
+### 在kotlin multiplatform项目中使用
+示例代码可以在composeApp模块下找到
+
 使用：
 ```kotlin
 
-fun main() {
-    LanguageManager.getInstance("i18n", Locale.US).apply {
-        load()
-        println(read("app_name", "12", 31))
+// 声明所有的 buildType 与 flavor配置
+variant {
+    // 设置当前激活的 buildType 与 flavor，必需设置此变量。
+    activeVariant.set("dev-free")
+    // 以下都是合法的 activeVariant 设置
+    // activeVariant.set("dev-paid")  // 使用 dev buildType 和 paid flavor
+    // activeVariant.set("dev")       // 仅使用 dev buildType，不使用 flavor
+
+    buildType {
+        // 如果没有定义buildType，默认会使用debug的buildType，
+        // 调用release方法配置release的buildType，其实相当于调用create("release"){}
+        // dev是自定义的buildType
+        release {
+            // configuration
+        }
+        // 创建一个新的 buildType
+        create("dev") {
+            distribution {
+                linux {
+                    // configuration
+                }
+                macOS {
+                    // configuration
+                }
+            }
+            buildConfigs {
+                packageName = "com.github.knightwood"
+                className = "BuildConfig"
+
+                // 配置 commonMain 源集下的BuildConfig，字段可以在jvmMain等源集中定义，这里仅需指定 expect = true 即可
+                create("commonMain") {
+                    expect = true
+                }
+
+                // 配置 jvmMain 源集下的BuildConfig，这里需要生成 actual的object BuildConfig类 所以这里需指定 expect = false 
+                create("jvmMain") {
+                    expect = false
+                    this + stringField("NAME", "Knightwood")
+                    this + intField("AGE", 18)
+                    this + booleanField("IS_DEBUG", false)
+                    this + stringField("GENDER", null)
+                }
+            }
+        }
+    }
+    flavor {
+        this.create("free") {
+            // 配置 free flavor变体额外追加的源码目录
+            sourceSets {
+                //为commonMain添加额外的源码目录
+                create("commonMain") {
+                    sourceDir = "buildSrc/free/commonMain/kt"
+                }
+                //为jvmMain添加额外的源码目录和资源目录
+                create("jvmMain") {
+                    sourceDir = "buildSrc/free/jvmMain/kt"
+                    resourceDir = "buildSrc/free/jvmMain/res"
+                }
+            }
+        }
     }
 }
+// 设置distribution配置
+compose.desktop {
+    application {
+        mainClass = "org.example.project.MainKt"
+
+        nativeDistributions {
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+
+            // 方案一：整体同步变体里的分发配置
+            variant.parseVariant().syncTo(this)
+
+            // 方案二：按需读取单个属性，自己决定优先级
+            // val info = variant.parseVariant().distributionInfo
+            // packageName = info.packageName ?: "org.example.project"
+            // menuGroup 在平台块里：info.windows.menuGroup
+        }
+    }
+}
+
+// 设置composeResource目录
+compose.resources {
+    val merged = variant.parseVariant()
+    merged.customSourceSets.findByName("jvmMain")?.composeResourceDir?.let { dir ->
+        customDirectory(
+            sourceSetName = "jvmMain",
+            directoryProvider = provider { layout.projectDirectory.dir(dir) }
+        )
+    }
+}
+
 ```
+
+### 在kotlin jvm项目中使用
+示例代码可以在desktopApp模块下找到
+
+
+使用：
+```kotlin
+variant {
+    activeVariant.set("dev-free")
+    buildType {
+        release {
+            // configuration
+        }
+        create("dev") {
+            distribution {
+                linux {
+                    // configuration
+                    menuGroup = "org.example.project.hello"
+                }
+                macOS {
+                    // configuration
+                }
+            }
+            buildConfigs {
+                packageName = "com.github.knightwood"
+                className = "BuildConfig"
+
+                // kotlin jvm只有一个main源集，且不需要生成 expect/actual object BuildConfig类，所以不要指定expect变量，让它保持默认值null
+                create("main") {
+                    this + intField("AGE", 18)
+                    this + booleanField("IS_DEBUG", false)
+                    this + stringField("GENDER", null)
+                }
+            }
+        }
+    }
+    flavor {
+        this.create("free") {
+            // configuration
+            sourceSets {
+                create("main") {
+                    sourceDir = "buildSrc/free/main/kt"
+                }
+            }
+        }
+    }
+}
+
+```
+
+
+## 其他
+[详细文档由AI生成，写一个好文档太难了，凑活看吧->](build-logic/variant-plugin/README.md)

@@ -26,6 +26,7 @@ variant {
                 packageName = "com.github.knightwood"
                 className = "BuildConfig"
 
+                // kotlin jvm只有一个main源集，且不需要生成 expect/actual object BuildConfig类，所以不要指定expect变量，让它保持默认值null
                 create("main") {
                     this + intField("AGE", 18)
                     this + booleanField("IS_DEBUG", false)
